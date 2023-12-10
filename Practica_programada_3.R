@@ -26,18 +26,28 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
-    plotOutput("grafico_1")
+    fluidRow(
+      column(width = 6, plotOutput("grafico_1")),
+      column(width = 6, tableOutput("table_1"), 
+             label = "Tabla")
+    )
   )
 )
 
 server <- function(input, output, session) {
   output$grafico_1 <- renderPlot({
-    ggplot(data = datos_spotify) +
-      geom_point(mapping = aes_string(x = "bpm", y = "popularity"))
+    filtered_data <- datos_spotify[
+      datos_spotify$year == input$year &
+        datos_spotify$top.genre == input$top.genre, ]
+    
+    ggplot(data = filtered_data) +
+      geom_point(mapping = aes(x = bpm, y = popularity)) +
+      theme_classic()
+  })
+  top_popularity <- top_n(datos_spotify, n = input)
+  output$table_1 <- renderTable({
+    datos_spotify
   })
 }
 
-shinyApp(ui = ui, server = server)
-
-
-#shinyApp(ui, server)
+shinyApp(ui, server)
